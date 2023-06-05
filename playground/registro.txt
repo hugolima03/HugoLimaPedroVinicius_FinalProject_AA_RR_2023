@@ -1,0 +1,3 @@
+Key	Valor
+a -> 0
+b -> 1
