@@ -1,15 +1,21 @@
 #include <fstream>
 #include <iostream>
+
 using namespace std;
 
-#include "heap.h"
+ofstream graphFile("graph.dot");
 
 // ANSI color codes
 const string RESET_COLOR = "\033[0m";
 const string RED_COLOR = "\033[31m";
 const string GREEN_COLOR = "\033[32m";
 
-ofstream graphFile("graph.dot");
+void printArray(int arr[], int n) {
+  int i;
+  for (i = 0; i < n; ++i) cout << arr[i];
+
+  cout << "\n";
+}
 
 bool isForbiddenChar(char c) {
   // Define the forbidden characters
@@ -27,6 +33,65 @@ string removeForbiddenChars(const string &input) {
                result.end());
 
   return result;
+}
+
+string getTextFromFile(string filepath) {
+  ifstream targetFile(filepath);
+  string text;
+  if (targetFile.is_open()) {
+    char ch;
+    while (targetFile.get(ch)) {
+      text += ch;
+    }
+    targetFile.close();
+  } else {
+    cerr << "Falha ao abrir o arquivo." << endl;
+  }
+  text = removeForbiddenChars(text);
+  return text;
+}
+
+void printHCodes(struct MinHNode *root, int arr[], int top) {
+  if (root->left) {
+    arr[top] = 0;
+    printHCodes(root->left, arr, top + 1);
+  }
+
+  if (root->right) {
+    arr[top] = 1;
+    printHCodes(root->right, arr, top + 1);
+  }
+  if (isLeaf(root)) {
+    cout << root->item << "  | ";
+    printArray(arr, top);
+  }
+}
+
+void generateDotFileEdges(MinHNode *top) {
+  char leftItem = top->left->item;
+  char rightItem = top->right->item;
+  string leftFreq = to_string(top->left->freq);
+  string rightFreq = to_string(top->right->freq);
+
+  if (leftItem == '$') {
+    graphFile << '"' + to_string(top->freq) + '"' + " -> " + '"' + leftFreq +
+                     '"' + "[ label=0 ]"
+              << endl;
+  } else {
+    graphFile << '"' + to_string(top->freq) + '"' + " -> " + '"' + leftItem +
+                     '"' + "[ label=0 ]"
+              << endl;
+  }
+
+  if (rightItem == '$') {
+    graphFile << '"' + to_string(top->freq) + '"' + " -> " + '"' + rightFreq +
+                     '"' + "[ label=1 ]"
+              << endl;
+  } else {
+    graphFile << '"' + to_string(top->freq) + '"' + " -> " + '"' + rightItem +
+                     '"' + "[ label=1 ]"
+              << endl;
+  }
 }
 
 int printCompactedSize(unordered_map<char, int> freq,
@@ -58,21 +123,4 @@ void printDiff(int compactedSize, int originalSize) {
          << '\n';
   }
   cout << '\n';
-}
-
-void generateDotLanguage(Node *root) {
-  string leftNode = to_string(root->left->freq);
-  string rightNode = to_string(root->right->freq);
-  if (root->left->ch) {
-    leftNode = root->left->ch;
-  }
-  if (root->right->ch) {
-    rightNode = root->right->ch;
-  }
-  string leftEdge = '"' + to_string(root->freq) + '"' + " -> " + '"' +
-                    leftNode + '"' + "[ label=0 ]";
-  string rightEdge = '"' + to_string(root->freq) + '"' + " -> " + '"' +
-                     rightNode + '"' + "[ label=1 ]";
-  graphFile << leftEdge << endl;
-  graphFile << rightEdge << endl;
 }

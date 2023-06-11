@@ -1,106 +1,43 @@
-// g++ -std=c++11 main.cpp -o main && ./main
-#include <cstdlib>
-#include <fstream>
-#include <iostream>
-#include <queue>
-using namespace std;
+// Huffman Coding in C++
 
+#include <iostream>
+
+#include "heap.h"
 #include "utils.h"
 
-// traverse the Huffman Tree and store Huffman Codes
-// in a map.
-void encode(Node *root, string str, unordered_map<char, string> &huffmanCode) {
-  if (root == nullptr) return;
+using namespace std;
 
-  // found a leaf node
-  if (!root->left && !root->right) {
-    huffmanCode[root->ch] = str;
-  } else {
-    // GERANDO DOT LANGUAGE
-    generateDotLanguage(root);
-  }
+struct MinH *createAndBuildMinHeap(unordered_map<char, int> freq, int size) {
+  struct MinH *minHeap = createMinH(size);
 
-  encode(root->left, str + "0", huffmanCode);
-  encode(root->right, str + "1", huffmanCode);
-}
-
-// traverse the Huffman Tree and decode the encoded string
-void decode(Node *root, int &index, string str) {
-  if (root == nullptr) {
-    return;
-  }
-
-  // found a leaf node
-  if (!root->left && !root->right) {
-    cout << root->ch;
-    return;
-  }
-
-  index++;
-
-  if (str[index] == '0')
-    decode(root->left, index, str);
-  else
-    decode(root->right, index, str);
-}
-
-int main(int argc, char *argv[]) {
-  if (argc < 2) {
-    cout << "Digite o caminho para o arquivo HTML." << endl;
-    return 1;
-  }
-
-  ifstream targetFile(argv[1]);
-  string text;
-  if (targetFile.is_open()) {
-    char ch;
-    while (targetFile.get(ch)) {
-      text += ch;
-    }
-    targetFile.close();
-  } else {
-    cout << "Falha ao abrir o arquivo." << endl;
-    return 1;
-  }
-  text = removeForbiddenChars(text);
-  // conta a frequência de aparição de cada personagem
-  // e armazena em um map(objeto)
-  unordered_map<char, int> freq;
-  for (char ch : text) {
-    freq[ch]++;
-  }
-
-  // Cria fila de prioridade para os nós ativos da árvore de Huffman
-  priority_queue<Node *, vector<Node *>, comp> pq;
-
-  // Crie um nó folha para cada letra e adiciona na fila de prioridade.
+  int i = 0;
   for (auto pair : freq) {
-    pq.push(getNode(pair.first, pair.second, nullptr, nullptr));
+    minHeap->array[i] = newNode(pair.first, pair.second);
+    i++;
   }
 
-  while (pq.size() != 1) {
-    // Remove os dois nós de menor frequência da fila
-    Node *left = pq.top();
-    pq.pop();
-    Node *right = pq.top();
-    pq.pop();
+  minHeap->size = size;
+  buildMinHeap(minHeap);
 
-    // Cria um novo nó interno com esses dois nós
-    // como filhos e com frequência igual à soma
-    // das frequências dos dois nós. Adicione o novo nó
-    // para a fila de prioridade.
-    int sum = left->freq + right->freq;
-    pq.push(getNode('\0', sum, left, right));
-  }
+  return minHeap;
+}
 
-  // raiz da Huffman Tree
-  Node *root = pq.top();
+struct MinHNode *buildHfTree(unordered_map<char, int> freq, int size) {
+  struct MinHNode *left, *right, *top;
+  struct MinH *minHeap = createAndBuildMinHeap(freq, size);
 
-  // traverse the Huffman Tree and store Huffman Codes
-  // in a map. Also prints them
   graphFile << "digraph G {" << endl;
-  unordered_map<char, string> huffmanCode;
-  encode(root, "", huffmanCode);
+  while (!checkSizeOne(minHeap)) {
+    left = extractMin(minHeap);
+    right = extractMin(minHeap);
+
+    top = newNode('$', left->freq + right->freq);
+    top->left = left;
+    top->right = right;
+
+    generateDotFileEdges(top);
+    insertMinHeap(minHeap, top);
+  }
   graphFile << "}" << endl;
   graphFile.close();
 
@@ -108,13 +45,55 @@ int main(int argc, char *argv[]) {
   int result = system(command.c_str());
   if (result != 0) {
     cerr << "Erro ao gerar a imagem do grafo." << endl;
-    return 1;
   }
 
-  cout << "Tabela de tradução:\n" << '\n';
-  for (auto pair : huffmanCode) {
-    cout << pair.first << " " << pair.second << '\n';
+  return extractMin(minHeap);
+}
+
+struct MinHNode *HuffmanCodes(unordered_map<char, int> freq, int size) {
+  struct MinHNode *root = buildHfTree(freq, size);
+
+  int arr[MAX_TREE_HT], top = 0;
+
+  cout << "Tabela de tradução:\n";
+  printHCodes(root, arr, top);
+  cout << endl;
+  return root;
+}
+
+void encode(MinHNode *root, string str,
+            unordered_map<char, string> &huffmanCode) {
+  if (root == nullptr) return;
+
+  // encontrou nó folha
+  if (!root->left && !root->right) {
+    huffmanCode[root->item] = str;
+  } else {
   }
+
+  encode(root->left, str + "0", huffmanCode);
+  encode(root->right, str + "1", huffmanCode);
+}
+
+int main(int argc, char *argv[]) {
+  if (argc < 2) {
+    cout << "Digite o caminho para o arquivo HTML." << endl;
+    return 1;
+  }
+  string text = getTextFromFile(argv[1]);
+
+  // conta a frequência de aparição de cada personagem
+  // e armazena em um map(objeto)
+  unordered_map<char, int> freq;
+  for (char ch : text) {
+    freq[ch]++;
+  }
+
+  int size = freq.size();
+  struct MinHNode *root = HuffmanCodes(freq, size);
+
+  unordered_map<char, string> tabelaTraducao;
+  encode(root, "", tabelaTraducao);
 
   string userInput;
   while (true) {
@@ -124,23 +103,22 @@ int main(int argc, char *argv[]) {
     string encodedInput = "";
     if (userInput != "exit") {
       for (char ch : userInput) {
-        bool notExistsInTable = (huffmanCode.find(ch) == huffmanCode.end());
+        bool notExistsInTable =
+            (tabelaTraducao.find(ch) == tabelaTraducao.end());
         if (notExistsInTable) {
           throw invalid_argument(
               "Caracter fornecido não existe na tabela de tradução");
         }
-        encodedInput += huffmanCode[ch];
+        encodedInput += tabelaTraducao[ch];
       }
 
       int originalSize = printOriginalSize(userInput);
       int compactedSize =
-          printCompactedSize(freq, huffmanCode, userInput, encodedInput);
+          printCompactedSize(freq, tabelaTraducao, userInput, encodedInput);
 
       printDiff(compactedSize, originalSize);
     } else {
       break;
     }
   }
-
-  return 0;
 }
