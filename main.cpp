@@ -55,7 +55,7 @@ struct MinHNode *buildHfTree(unordered_map<char, int> freq, int size) {
   graphFile << "}" << endl;
   graphFile.close();
 
-  string command = "dot -Tpng graph.dot -o graph.png && rm graph.dot";
+  string command = "dot -Tpng graph.dot -o graph.png";
   int result = system(command.c_str());
   if (result != 0) {
     cerr << "Erro ao gerar a imagem do grafo." << endl;
