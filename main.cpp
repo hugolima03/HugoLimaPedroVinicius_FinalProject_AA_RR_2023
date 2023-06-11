@@ -7,6 +7,20 @@
 
 using namespace std;
 
+void encode(MinHNode *root, string str,
+            unordered_map<char, string> &huffmanCode) {
+  if (root == nullptr) return;
+
+  // encontrou nó folha
+  if (!root->left && !root->right) {
+    huffmanCode[root->item] = str;
+  } else {
+  }
+
+  encode(root->left, str + "0", huffmanCode);
+  encode(root->right, str + "1", huffmanCode);
+}
+
 struct MinH *createAndBuildMinHeap(unordered_map<char, int> freq, int size) {
   struct MinH *minHeap = createMinH(size);
 
@@ -50,31 +64,6 @@ struct MinHNode *buildHfTree(unordered_map<char, int> freq, int size) {
   return extractMin(minHeap);
 }
 
-struct MinHNode *HuffmanCodes(unordered_map<char, int> freq, int size) {
-  struct MinHNode *root = buildHfTree(freq, size);
-
-  int arr[MAX_TREE_HT], top = 0;
-
-  cout << "Tabela de tradução:\n";
-  printHCodes(root, arr, top);
-  cout << endl;
-  return root;
-}
-
-void encode(MinHNode *root, string str,
-            unordered_map<char, string> &huffmanCode) {
-  if (root == nullptr) return;
-
-  // encontrou nó folha
-  if (!root->left && !root->right) {
-    huffmanCode[root->item] = str;
-  } else {
-  }
-
-  encode(root->left, str + "0", huffmanCode);
-  encode(root->right, str + "1", huffmanCode);
-}
-
 int main(int argc, char *argv[]) {
   if (argc < 2) {
     cout << "Digite o caminho para o arquivo HTML." << endl;
@@ -90,10 +79,12 @@ int main(int argc, char *argv[]) {
   }
 
   int size = freq.size();
-  struct MinHNode *root = HuffmanCodes(freq, size);
+  struct MinHNode *root = buildHfTree(freq, size);
 
   unordered_map<char, string> tabelaTraducao;
   encode(root, "", tabelaTraducao);
+
+  printTranslationTable(root, freq, tabelaTraducao);
 
   string userInput;
   while (true) {
@@ -113,8 +104,7 @@ int main(int argc, char *argv[]) {
       }
 
       int originalSize = printOriginalSize(userInput);
-      int compactedSize =
-          printCompactedSize(freq, tabelaTraducao, userInput, encodedInput);
+      int compactedSize = printCompactedSize(encodedInput);
 
       printDiff(compactedSize, originalSize);
     } else {

@@ -94,17 +94,11 @@ void generateDotFileEdges(MinHNode *top) {
   }
 }
 
-int printCompactedSize(unordered_map<char, int> freq,
-                       unordered_map<char, std::__1::string> huffmanCode,
-                       string userInput, string encodedInput) {
-  int compactedSize = 0;
-  for (auto pair : huffmanCode) {
-    compactedSize = compactedSize + 8;
-    compactedSize = compactedSize + freq[pair.first] * pair.second.length();
-  }
+int printCompactedSize(string encodedInput) {
+  int compactedSize = encodedInput.length();
   cout << "Texto codificado(" << compactedSize << " bits): " << encodedInput
        << '\n';
-  return compactedSize + userInput.length();
+  return compactedSize;
 }
 
 int printOriginalSize(string userInput) {
@@ -123,4 +117,18 @@ void printDiff(int compactedSize, int originalSize) {
          << '\n';
   }
   cout << '\n';
+}
+
+void printTranslationTable(MinHNode *root, unordered_map<char, int> freq,
+                           unordered_map<char, string> tabelaTraducao) {
+  int compactedSize = 0;
+  for (auto pair : tabelaTraducao) {
+    compactedSize = compactedSize + 8;
+    compactedSize = compactedSize + freq[pair.first];
+  }
+
+  int arr[MAX_TREE_HT], top = 0;
+  cout << "Tabela de tradução(" << compactedSize << " bits):\n";
+  printHCodes(root, arr, top);
+  cout << endl;
 }
