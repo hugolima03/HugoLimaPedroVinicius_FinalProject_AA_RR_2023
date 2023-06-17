@@ -65,6 +65,8 @@ struct MinHNode *buildHfTree(unordered_map<char, int> freq, int size) {
 }
 
 int main(int argc, char *argv[]) {
+  clock_t start, end;
+
   if (argc < 2) {
     cout << "Digite o caminho para o arquivo HTML." << endl;
     return 1;
@@ -79,7 +81,14 @@ int main(int argc, char *argv[]) {
   }
 
   int size = freq.size();
+  start = clock();
   struct MinHNode *root = buildHfTree(freq, size);
+  end = clock();
+  // Calculating total time taken by the program.
+  double time_taken = double(end - start) / double(CLOCKS_PER_SEC);
+  cout << "Time taken by program is : " << fixed << time_taken
+       << setprecision(5);
+  cout << " sec " << endl;
 
   unordered_map<char, string> tabelaTraducao;
   encode(root, "", tabelaTraducao);
@@ -89,7 +98,7 @@ int main(int argc, char *argv[]) {
   string userInput;
   while (true) {
     cout << "Digite uma nova sentença(exit para sair): ";
-    cin >> userInput;
+    getline(cin, userInput);
 
     string encodedInput = "";
     if (userInput != "exit") {

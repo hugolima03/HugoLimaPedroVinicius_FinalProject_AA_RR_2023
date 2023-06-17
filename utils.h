@@ -47,7 +47,7 @@ string getTextFromFile(string filepath) {
   } else {
     cerr << "Falha ao abrir o arquivo." << endl;
   }
-  text = removeForbiddenChars(text);
+  // text = removeForbiddenChars(text);
   return text;
 }
 
