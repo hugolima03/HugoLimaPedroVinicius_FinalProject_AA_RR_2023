@@ -79,6 +79,7 @@ int main(int argc, char *argv[]) {
   for (char ch : text) {
     freq[ch]++;
   }
+  // std::cout << "Unique caracters: " << freq.size() << std::endl;
 
   int size = freq.size();
   start = clock();
