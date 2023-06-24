@@ -1,6 +1,9 @@
 // Huffman Coding in C++
 
+#include <iomanip>
 #include <iostream>
+#include <algorithm>
+#include <unordered_map>
 
 #include "heap.h"
 #include "utils.h"
