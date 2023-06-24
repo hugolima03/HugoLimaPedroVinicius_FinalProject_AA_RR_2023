@@ -1,6 +1,8 @@
 // Huffman Coding in C++
-
+#include <iomanip>
 #include <iostream>
+#include <algorithm>
+#include <unordered_map>
 
 #include "heap.h"
 #include "utils.h"
@@ -87,7 +89,7 @@ int main(int argc, char *argv[]) {
   // Calculating total time taken by the program.
   double time_taken = double(end - start) / double(CLOCKS_PER_SEC);
   cout << "Time taken by program is : " << fixed << time_taken
-       << setprecision(5);
+       << std::setprecision(5);
   cout << " sec " << endl;
 
   unordered_map<char, string> tabelaTraducao;
